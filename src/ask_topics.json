@@ -1,0 +1,78 @@
+{
+  "pages": {
+    "overview": {
+      "topic": "overview",
+      "suggestions": [
+        "Where is order-to-cash performance weakest, and why?",
+        "How have DSO and OTIF trended over the last year?"
+      ]
+    },
+    "order-book": {
+      "topic": "orders",
+      "suggestions": [
+        "Where is past-due backlog building up?",
+        "How well do CPQ quotes convert into orders?"
+      ]
+    },
+    "fulfillment": {
+      "topic": "fulfillment",
+      "suggestions": [
+        "Which plants and product families miss OTIF most, and why?",
+        "How much does carrier data change our OTIF picture?"
+      ]
+    },
+    "billing": {
+      "topic": "billing",
+      "suggestions": [
+        "Where are we slow to invoice after shipping?",
+        "What is driving credit memos?"
+      ]
+    },
+    "receivables": {
+      "topic": "receivables",
+      "suggestions": [
+        "Which company has the worst DSO versus its best possible DSO?",
+        "Is collection effectiveness improving?"
+      ]
+    },
+    "collections": {
+      "topic": "collections",
+      "suggestions": [
+        "Which customers should collectors call first this week?",
+        "Which dispute root causes cost us the most?"
+      ]
+    },
+    "cash-application": {
+      "topic": "cash",
+      "suggestions": [
+        "How much cash is unapplied and where?",
+        "How can we raise the auto-match rate?"
+      ]
+    },
+    "customers": {
+      "topic": "customers",
+      "suggestions": [
+        "Which customers are over their credit limit?",
+        "Which large customers pay late or dispute often?"
+      ]
+    },
+    "data-sources": {
+      "topic": "sources",
+      "suggestions": [
+        "What does each selected source contribute?",
+        "What do we lose by reading SAP from BDC instead of S/4HANA?"
+      ]
+    }
+  },
+  "askCortexPage": {
+    "topic": "general",
+    "suggestions": [
+      "Where is our order-to-cash cycle losing the most time?",
+      "Which customers and invoices put our DSO at risk?",
+      "Why is OTIF low in Monterrey?",
+      "What is driving disputes and credit memos?",
+      "How much cash is unapplied, and why?",
+      "What would we lose by reading SAP from BDC instead of S/4HANA tables?"
+    ]
+  }
+}
