@@ -13,6 +13,8 @@ marts on Snowflake, then on to a semantic view, a Cortex Agent and this React ap
 Pages: Executive Dashboard, Order Book & Quotes, Fulfillment & OTIF, Billing, Receivables & DSO, Collections & Disputes,
 Cash Application, Customer 360, Data Sources, Field Mapping, SAP Metadata, Sources & Lineage (dbt), Pipeline in 3D and Ask Cortex.
 
+**Snowflake employees:** the live app (live queries, free-text Ask Cortex, saved scenarios) is also on the internal marketplace as the Native App listing **`ORDER_TO_CASH_ORG`** in the SAP BDC demo orgs (US West, EU Frankfurt, APAC Sydney).
+
 ## How the public build works
 
 - **Snapshot:** built with `VITE_STATIC=1`, the client reads pre-baked JSON in `public/data/` instead of a live `/api`.
