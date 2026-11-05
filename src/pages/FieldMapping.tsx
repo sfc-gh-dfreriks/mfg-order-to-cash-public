@@ -9,7 +9,7 @@ import Bars from '@/components/Bars';
 
 export const OBJECT_LABEL: Record<string, string> = {
   CUSTOMER: 'Customers', QUOTE: 'Quotes', SALES_ORDER_LINE: 'Order lines', DELIVERY_LINE: 'Delivery lines',
-  SHIPMENT_EVENT: 'Shipment events', BILLING_LINE: 'Billing lines', AR_ITEM: 'Receivable items', DISPUTE_CASE: 'Disputes',
+  SHIPMENT_EVENT: 'Shipment events', SHIPMENT_TRACKING: 'Tracked shipments', SHIPMENT_POSITION: 'GPS positions', BILLING_LINE: 'Billing lines', AR_ITEM: 'Receivable items', DISPUTE_CASE: 'Disputes',
   PAYMENT_RECEIPT: 'Bank receipts',
 };
 const OBJECTS = Object.keys(OBJECT_LABEL);

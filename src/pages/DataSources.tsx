@@ -17,7 +17,7 @@ const SAP_CHOICES = [
 ];
 const OBJECT_LABEL: Record<string, string> = {
   CUSTOMER: 'Customers', QUOTE: 'Quotes', SALES_ORDER_LINE: 'Order lines', DELIVERY_LINE: 'Delivery lines',
-  SHIPMENT_EVENT: 'Shipment events', BILLING_LINE: 'Billing lines', AR_ITEM: 'Receivable items', DISPUTE_CASE: 'Disputes',
+  SHIPMENT_EVENT: 'Shipment events', SHIPMENT_TRACKING: 'Tracked shipments', SHIPMENT_POSITION: 'GPS positions', BILLING_LINE: 'Billing lines', AR_ITEM: 'Receivable items', DISPUTE_CASE: 'Disputes',
   PAYMENT_RECEIPT: 'Bank receipts',
 };
 
@@ -123,7 +123,7 @@ export default function DataSources() {
                       <span className="rounded bg-gray-100 px-2 py-0.5 font-mono">{schema}</span>
                       <span>{formatNumber(rowsBySchema[schema]?.tables)} tables · {formatNumber(rowsBySchema[schema]?.rowTotal)} rows</span>
                       {sys.gaps.map((g: string) => (
-                        <span key={g} className="flex items-center gap-1 rounded bg-amber-100 px-2 py-0.5 text-amber-800"><AlertTriangle className="h-3 w-3" />No {OBJECT_LABEL[g].toLowerCase()}</span>
+                        <span key={g} className="flex items-center gap-1 rounded bg-amber-100 px-2 py-0.5 text-amber-800"><AlertTriangle className="h-3 w-3" />No {(OBJECT_LABEL[g] ?? g).toLowerCase()}</span>
                       ))}
                       <button onClick={() => setPreview({ slot: s.sourceSlot, system: choice })} className="ml-auto flex items-center gap-1 text-sf-primary hover:underline">
                         <Eye className="h-3.5 w-3.5" /> Preview native tables
