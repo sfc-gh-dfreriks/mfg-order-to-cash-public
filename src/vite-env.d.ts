@@ -2,5 +2,6 @@
 
 interface ImportMetaEnv {
   readonly VITE_STATIC?: string;
+  readonly VITE_NATIVE?: string;
   readonly VITE_AGENT_URL?: string;
 }

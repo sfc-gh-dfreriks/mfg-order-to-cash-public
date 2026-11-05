@@ -15,6 +15,7 @@ export const OBJECT_LABEL: Record<string, string> = {
 const OBJECTS = Object.keys(OBJECT_LABEL);
 export const SOURCE_BADGE: Record<string, string> = {
   DDIC: 'bg-blue-100 text-blue-800', CSN: 'bg-violet-100 text-violet-800', BW: 'bg-amber-100 text-amber-800', NONE: 'bg-gray-100 text-gray-500',
+  REPLICATED_DD: 'bg-sky-100 text-sky-800', REFERENCE: 'bg-orange-100 text-orange-800',
 };
 export function SourceBadge({ source }: { source?: string | null }) {
   const s = source || 'NONE';

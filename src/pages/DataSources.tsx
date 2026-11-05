@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Database, Play, Loader2, CheckCircle2, XCircle, Eye, AlertTriangle } from 'lucide-react';
+import { Database, Play, Loader2, CheckCircle2, XCircle, Eye, AlertTriangle, ArrowDownToLine } from 'lucide-react';
 import { useQuery } from '@/hooks/useQuery';
 import { useFilters } from '@/hooks/useFilters';
-import { fetchSources, fetchSourcePreview, fetchJob, applySelection, STATIC } from '@/lib/api';
+import { fetchSources, fetchSourcePreview, fetchJob, applySelection, STATIC, NATIVE } from '@/lib/api';
 import { formatNumber, cn } from '@/lib/utils';
 import ChartCard from '@/components/ChartCard';
 import PageState from '@/components/PageState';
@@ -21,6 +21,16 @@ const OBJECT_LABEL: Record<string, string> = {
   PAYMENT_RECEIPT: 'Bank receipts',
 };
 
+/** Saved ingestion (CONFIG.INGESTION) as {SRC_ECC_A: {profile, schema}}; schemas without a row are DIRECT. */
+function ingestionFrom(saved: any): Record<string, { profile: string; schema: string }> {
+  return Object.fromEntries(Object.entries<any>(saved ?? {}).filter(([, v]) => v.profile !== 'DIRECT')
+    .map(([k, v]) => [k, { profile: v.profile, schema: v.schema ?? '' }]));
+}
+
+/** Comparable form: DIRECT entries are the same as no entry. */
+const ingKey = (m: Record<string, { profile: string; schema: string }>) =>
+  JSON.stringify(Object.entries(m).filter(([, v]) => v.profile !== 'DIRECT').sort(([a], [b]) => a.localeCompare(b)));
+
 function selectionFrom(slots: any[]): Selection {
   const s: Selection = {};
   for (const r of slots) s[r.sourceSlot] = r.kind === 'SAP' ? (r.enabled ? r.systemCode : 'OFF') : !!r.enabled;
@@ -35,8 +45,10 @@ export default function DataSources() {
   const [job, setJob] = useState<any>(null);
   const [applyError, setApplyError] = useState<string | null>(null);
   const [preview, setPreview] = useState<{ slot: string; system: string } | null>(null);
+  const [ing, setIng] = useState<Record<string, { profile: string; schema: string }>>({});
 
   useEffect(() => { if (data?.slots) setSel(selectionFrom(data.slots)); }, [data]);
+  useEffect(() => { if (data) setIng(ingestionFrom(data.ingestion)); }, [data]);
   useEffect(() => { if (data?.running?.status === 'running') setJob(data.running); }, [data]);
 
   // Poll the dbt job while it runs; reload every page when it finishes.
@@ -52,7 +64,8 @@ export default function DataSources() {
   }, [job?.status, reload]);
 
   const saved = useMemo(() => (data?.slots ? selectionFrom(data.slots) : {}), [data]);
-  const dirty = JSON.stringify(saved) !== JSON.stringify(sel);
+  const savedIng = useMemo(() => ingestionFrom(data?.ingestion), [data]);
+  const dirty = JSON.stringify(saved) !== JSON.stringify(sel) || ingKey(savedIng) !== ingKey(ing);
   const running = job?.status === 'running';
   const systems = data?.systems ?? {};
   const rowsBySchema = Object.fromEntries((data?.tables ?? []).map((t: any) => [t.tableSchema, t]));
@@ -61,7 +74,7 @@ export default function DataSources() {
 
   async function apply() {
     setApplyError(null);
-    try { await applySelection(sel); setJob({ status: 'running', log: ['Starting dbt build…'], started: Date.now() }); }
+    try { await applySelection(sel, ing); setJob({ status: 'running', log: ['Starting dbt build…'], started: Date.now() }); }
     catch (e) { setApplyError((e as Error).message); }
   }
 
@@ -104,6 +117,8 @@ export default function DataSources() {
                 {sys && (
                   <div className="mt-4 space-y-2 text-xs text-gray-600">
                     <p>{sys.note}</p>
+                    <IngestionPicker schema={schema} value={ing[schema] ?? { profile: 'DIRECT', schema: '' }} profiles={data?.profiles ?? []}
+                      landed={data?.landed ?? []} disabled={STATIC || NATIVE || running} onChange={(v) => setIng({ ...ing, [schema]: v })} />
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="rounded bg-gray-100 px-2 py-0.5 font-mono">{schema}</span>
                       <span>{formatNumber(rowsBySchema[schema]?.tables)} tables · {formatNumber(rowsBySchema[schema]?.rowTotal)} rows</span>
@@ -151,12 +166,13 @@ export default function DataSources() {
         </ChartCard>
 
         <div className="sticky bottom-4 z-10 flex items-center gap-4 rounded-xl border border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur">
-          <button onClick={apply} disabled={STATIC || !dirty || running}
+          <button onClick={apply} disabled={STATIC || NATIVE || !dirty || running}
             className="flex items-center gap-2 rounded-lg bg-sf-primary px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-sf-dark disabled:cursor-not-allowed disabled:opacity-40">
             {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />} {running ? 'Rebuilding…' : 'Apply and rebuild'}
           </button>
           <div className="text-sm text-gray-600">
             {STATIC ? 'Public demo: you can browse each source type and preview its native tables. Switching sources runs dbt in Snowflake, so it needs the full deployment.'
+              : NATIVE ? 'Snowflake Native App: you can browse each source type and preview its native tables. Switching sources runs dbt, so it needs the full deployment.'
               : running ? 'dbt build is running: staging adapters are unchanged; silver, gold and tests are rebuilt.'
               : dirty ? 'Selection changed. Apply to rebuild the silver and gold layers.' : 'The dashboards reflect this selection.'}
           </div>
@@ -250,6 +266,38 @@ function PreviewDialog({ slot, system, onClose }: { slot: string; system: string
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/** Which tool lands this bronze schema in Snowflake. DIRECT reads the native SRC_* tables; an ELT profile reads its
+ *  landed schema through the bronze() macro (audit columns dropped, soft deletes filtered, text dates cast back). */
+function IngestionPicker({ schema, value, profiles, landed, disabled, onChange }: {
+  schema: string; value: { profile: string; schema: string }; profiles: any[]; landed: any[]; disabled: boolean;
+  onChange: (v: { profile: string; schema: string }) => void;
+}) {
+  if (!profiles.length) return null;
+  const p = profiles.find((x) => x.code === value.profile) ?? profiles[0];
+  const options = landed.filter((l) => l.tableSchema.endsWith(schema.replace(/^SRC_/, '')));
+  return (
+    <div className="rounded-lg border border-gray-200 bg-gray-50/60 p-2.5">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="flex items-center gap-1 font-semibold text-gray-700"><ArrowDownToLine className="h-3.5 w-3.5" />Ingestion</span>
+        <select value={value.profile} disabled={disabled} aria-label={`Ingestion for ${schema}`}
+          onChange={(e) => onChange({ profile: e.target.value, schema: e.target.value === 'DIRECT' ? '' : (value.schema || options[0]?.tableSchema || '') })}
+          className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs disabled:opacity-60">
+          {profiles.map((x) => <option key={x.code} value={x.code}>{x.name}</option>)}
+        </select>
+        {value.profile !== 'DIRECT' && (
+          <select value={value.schema} disabled={disabled} aria-label={`Landed schema for ${schema}`}
+            onChange={(e) => onChange({ ...value, schema: e.target.value })}
+            className="rounded-md border border-gray-300 bg-white px-2 py-1 font-mono text-xs disabled:opacity-60">
+            {!options.length && <option value="">no landed schema found</option>}
+            {options.map((l) => <option key={l.tableSchema} value={l.tableSchema}>{l.tableSchema} ({l.tables} tables)</option>)}
+          </select>
+        )}
+      </div>
+      <p className="mt-1 text-[11px] leading-snug text-gray-500">{p?.note}</p>
     </div>
   );
 }

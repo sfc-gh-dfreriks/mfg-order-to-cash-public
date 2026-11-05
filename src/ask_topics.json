@@ -21,6 +21,13 @@
         "How much does carrier data change our OTIF picture?"
       ]
     },
+    "shipments": {
+      "topic": "shipments",
+      "suggestions": [
+        "Which delayed shipments in transit carry the most value, and why are they late?",
+        "Which carriers and lanes deliver late most often?"
+      ]
+    },
     "billing": {
       "topic": "billing",
       "suggestions": [

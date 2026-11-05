@@ -1,8 +1,8 @@
-import { LayoutDashboard, ClipboardList, Truck, FileText, Landmark, PhoneCall, Banknote, Users, Database, GitBranch, Check, Sparkles, Boxes, Columns3, BookOpen } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, Truck, MapPinned, FileText, Landmark, PhoneCall, Banknote, Users, Database, GitBranch, Check, Sparkles, Boxes, Columns3, BookOpen } from 'lucide-react';
 import { useFilters } from '@/hooks/useFilters';
 import { cn } from '@/lib/utils';
 
-export type PageId = 'ask-cortex' | 'overview' | 'order-book' | 'fulfillment' | 'billing' | 'receivables' | 'collections' | 'cash-application'
+export type PageId = 'ask-cortex' | 'overview' | 'order-book' | 'fulfillment' | 'shipments' | 'billing' | 'receivables' | 'collections' | 'cash-application'
   | 'customers' | 'data-sources' | 'field-mapping' | 'sap-metadata' | 'lineage' | 'pipeline-3d';
 
 export interface NavItem { id: PageId; label: string; icon: React.ElementType; }
@@ -12,6 +12,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'overview', label: 'Executive Dashboard', icon: LayoutDashboard },
   { id: 'order-book', label: 'Order Book & Quotes', icon: ClipboardList },
   { id: 'fulfillment', label: 'Fulfillment & OTIF', icon: Truck },
+  { id: 'shipments', label: 'Shipments in Motion', icon: MapPinned },
   { id: 'billing', label: 'Billing', icon: FileText },
   { id: 'receivables', label: 'Receivables & DSO', icon: Landmark },
   { id: 'collections', label: 'Collections & Disputes', icon: PhoneCall },

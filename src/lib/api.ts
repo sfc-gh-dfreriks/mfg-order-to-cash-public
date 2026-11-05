@@ -3,6 +3,8 @@
 //   - Static (VITE_STATIC=1, the public GitHub Pages build): pre-baked JSON under <base>/data/, written by
 //     an export script (not built yet for this use case). Writes (Apply, free-text Cortex) are unavailable.
 export const STATIC = import.meta.env.VITE_STATIC === '1';
+/** Native App build (VITE_NATIVE=1): live /api over the data bundled in the app; Apply (dbt) is disabled. */
+export const NATIVE = import.meta.env.VITE_NATIVE === '1';
 const DATA_BASE = `${import.meta.env.BASE_URL}data`;
 const BASE = '/api';
 
@@ -79,15 +81,31 @@ export const fetchSourcePreview = (slot: string, system: string) =>
   STATIC ? loadStatic(`sources-preview/${slot}__${system}`).then(camelizeKeys) : get(`/sources/preview?${new URLSearchParams({ slot, system })}`);
 export const fetchJob = () => (STATIC ? Promise.resolve(null) : get('/sources/job'));
 export const fetchLineage = () => (STATIC ? loadStatic('lineage').then(camelizeKeys) : get('/lineage'));
-export async function applySelection(selection: Record<string, string | boolean>): Promise<{ id: string }> {
+/** Ingestion profile per bronze schema: {SRC_ECC_A: {profile: 'FIVETRAN', schema: 'LND_FIVETRAN_ECC_A'}} (DIRECT = native tables). */
+export type IngestionChoice = Record<string, { profile: string; schema?: string }>;
+export async function applySelection(selection: Record<string, string | boolean>, ingestion?: IngestionChoice): Promise<{ id: string }> {
   if (STATIC) throw new Error('The public demo is a read-only snapshot. Run the app against Snowflake to switch sources and rebuild.');
-  const res = await fetch(`${BASE}/sources/apply`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ selection }),
-  });
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(body.error ?? `Apply failed: ${res.status}`);
-  return body;
+  return post('/sources/apply', { selection, ingestion });
 }
+
+async function post<T = any>(path: string, payload: unknown): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error ?? `API error: ${res.status}`);
+  return camelizeKeys(body) as T;
+}
+
+// ── SAP metadata connection ─────────────────────────────────────────────────
+// Per SAP slot: how metadata is collected (AUTO / JCO_RFC / REPLICATED_DD / REFERENCE / CSN / BW) and whether the SAP
+// JCo runtime is confirmed as permitted, with the adaptive plan. Read-only in the public snapshot (baked by
+// scripts/export-static.mjs) and the Native App.
+const NO_CONNECTION = { slots: [], runs: [], methods: [], job: null, readOnly: true };
+export const fetchMetaConnection = () =>
+  STATIC ? loadStatic('metadata/connection').then(camelizeKeys).catch(() => NO_CONNECTION) : get('/metadata/connection');
+export interface ConnectionSave { slot: string; method: string; jcoPermitted: boolean; ddDatabase?: string; ddSchema?: string; note?: string }
+export const saveMetaConnection = (c: ConnectionSave) => post('/metadata/connection', c);
+export const startCollect = (slot: string, tables?: string[]) => post<{ id: string }>('/metadata/collect', { slot, tables });
+export const fetchCollectJob = () => (STATIC ? Promise.resolve(null) : get('/metadata/collect/job'));
 
 // ── Ask Cortex ──────────────────────────────────────────────────────────────
 // POST starts a background job, then poll until done.

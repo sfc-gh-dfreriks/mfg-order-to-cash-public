@@ -8,7 +8,7 @@ import ReactECharts from '@/components/Chart';
 import PageState from '@/components/PageState';
 
 // The canonical objects in canonical.yml, in flow order (quote to cash); each is a silver model in dbt/models/intermediate.
-const OBJECTS = ['customer', 'quote', 'sales_order_line', 'delivery_line', 'shipment_event', 'billing_line', 'ar_item', 'dispute_case', 'payment_receipt'];
+const OBJECTS = ['customer', 'quote', 'sales_order_line', 'delivery_line', 'shipment_event', 'shipment_tracking', 'shipment_position', 'billing_line', 'ar_item', 'dispute_case', 'payment_receipt'];
 const LAYERS = ['source', 'staging', 'silver', 'gold'] as const;
 const LAYER_LABEL: Record<string, string> = { source: 'Bronze: native ERP tables', staging: 'dbt staging adapters', silver: 'Silver: canonical model', gold: 'Gold: marts' };
 const LAYER_COLOR: Record<string, string> = { source: '#94a3b8', staging: '#29b5e8', silver: '#8b5cf6', gold: '#f59e0b' };

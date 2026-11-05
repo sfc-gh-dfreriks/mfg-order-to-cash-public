@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BookOpen, Table2, Hash, ListChecks, KeyRound, Check, Sparkles, Info } from 'lucide-react';
 import { useQuery } from '@/hooks/useQuery';
 import { fetchMetaCoverage, fetchMetaTable, fetchMetaEnriched, fetchMetaSuggest } from '@/lib/api';
@@ -8,6 +8,7 @@ import MetricCard from '@/components/MetricCard';
 import PageState from '@/components/PageState';
 import ReactECharts from '@/components/Chart';
 import { OBJECT_LABEL, SourceBadge } from '@/pages/FieldMapping';
+import MetadataConnection from '@/components/MetadataConnection';
 
 const PROVIDER: Record<string, { label: string; color: string; accent: string }> = {
   DDIC: { label: 'DDIC (ECC / S/4HANA)', color: '#29b5e8', accent: 'border-blue-200 bg-gradient-to-br from-blue-50 to-sky-50' },
@@ -21,7 +22,9 @@ const SCHEMAS: Record<string, string[]> = {
 type Tab = 'browser' | 'enriched' | 'assistant';
 
 export default function SapMetadata() {
-  const { data, loading, error } = useQuery(fetchMetaCoverage, []);
+  const [metaVersion, setMetaVersion] = useState(0);
+  const reloadMeta = useCallback(() => setMetaVersion((v) => v + 1), []);
+  const { data, loading, error } = useQuery(fetchMetaCoverage, [metaVersion]);
   const tables: any[] = data?.tables ?? [];
   const totals: any[] = data?.totals ?? [];
   const [system, setSystem] = useState('DDIC');
@@ -36,9 +39,11 @@ export default function SapMetadata() {
     <div className="space-y-6">
       <p className="flex items-start gap-2 text-sm text-gray-600">
         <Info className="mt-0.5 h-4 w-4 shrink-0 text-sf-primary" />
-        DDIC metadata is synced live from SAP S/4HANA via the JCo bridge (DD02L/DD03L/DD04T/DD07T). BDC (CSN) and BW (InfoObject) metadata are
-        representative for this synthetic demo.
+        SAP metadata comes from the most trusted route the landscape allows: the live ABAP Dictionary over SAP JCo RFC (only where the JCo runtime is
+        confirmed as permitted), the dictionary tables an ELT tool replicates (DD02L/DD03L/DD04T/DD07T), or a public reference catalog of standard tables.
+        BDC (CSN) and BW (InfoObject) metadata are representative for this synthetic demo.
       </p>
+      <MetadataConnection onCollected={reloadMeta} />
       <PageState loading={loading} error={error}>
         <div className="grid grid-cols-4 gap-4">
           {['DDIC', 'BDC', 'BW'].map((p) => {
