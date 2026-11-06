@@ -7,10 +7,11 @@ A static, no-login build of the **Orders to Cash** app (manufacturing use case 0
 
 The app follows sales orders through shipping, billing and receivables to cash. It reads two SAP instances, each as SAP ECC,
 S/4HANA, BW or BDC, together with Salesforce CPQ quotes, a carrier tracking feed, an AR automation platform (disputes and
-deductions) and bank statements (camt.053). The data flows through dbt staging adapters, a canonical silver layer and gold
+deductions), bank statements (camt.053) and a real-time shipment visibility feed. The data flows through dbt staging adapters, a canonical silver layer and gold
 marts on Snowflake, then on to a semantic view, a Cortex Agent and this React app. All data is synthetic.
 
-Pages: Executive Dashboard, Order Book & Quotes, Fulfillment & OTIF, Billing, Receivables & DSO, Collections & Disputes,
+Pages: Executive Dashboard, Order Book & Quotes, Fulfillment & OTIF, Shipments in Motion (container ships, flights, trains and
+trucks on their real routes, with intercompany stock transfers), Billing, Receivables & DSO, Collections & Disputes,
 Cash Application, Customer 360, Data Sources, Field Mapping, SAP Metadata, Sources & Lineage (dbt), Pipeline in 3D and Ask Cortex.
 
 **Snowflake employees:** the live app (live queries, free-text Ask Cortex, saved scenarios) is also on the internal marketplace as the Native App listing **`ORDER_TO_CASH_ORG`** in the SAP BDC demo orgs (US West, EU Frankfurt, APAC Sydney).
