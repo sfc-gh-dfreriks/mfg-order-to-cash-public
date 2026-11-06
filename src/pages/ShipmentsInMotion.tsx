@@ -104,7 +104,8 @@ export default function ShipmentsInMotion() {
   const all: any[] = (data?.shipments ?? []).map((s: any) => ({ ...s, transport: (s.transport ?? 'ROAD') as Mode }));
   const ships = all.filter((s) => shown[s.status as Status] && modes[s.transport as Mode] && types[s.shipmentType ?? 'SALES']
     && (region === 'All' || s.region === region));
-  const ic = data?.intercompany ?? {};
+  const icRaw = data?.intercompany ?? {};
+  const ic = { inTransit: icRaw.inTransit ?? 0, atSea: icRaw.atSea ?? 0, inTransitValue: icRaw.inTransitValue ?? 0, delayed: icRaw.delayed ?? 0 };
   const atRisk = [...all].filter((s) => s.status === 'LATE' && s.shipmentType !== 'INTERCOMPANY').sort((a, b) => (b.value ?? 0) - (a.value ?? 0)).slice(0, 25);
   const sel = selected && ships.find((s) => s.id === selected.id);
 
